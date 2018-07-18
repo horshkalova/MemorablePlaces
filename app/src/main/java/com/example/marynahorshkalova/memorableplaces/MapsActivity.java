@@ -119,7 +119,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             address += addressList.get(0).getAddressLine(0);
                         }
 
-                        Toast.makeText(MapsActivity.this, address, Toast.LENGTH_LONG).show();
+                        Toast.makeText(MapsActivity.this, "Saved address: " + address, Toast.LENGTH_LONG).show();
                     }
 
                 } catch (IOException e) {
@@ -129,8 +129,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 mMap.clear();
 
+                // MAKE A DRAGGABLE MARKER
+
                 MarkerOptions options = new MarkerOptions()
-                        .title(addressList.get(0).getLocality())
+                        .title(addressList.get(0).getAddressLine(0))
                         .position(new LatLng(latLng.latitude,
                                 latLng.longitude));
 
