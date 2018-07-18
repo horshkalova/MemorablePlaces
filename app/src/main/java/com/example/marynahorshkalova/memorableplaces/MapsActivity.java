@@ -69,9 +69,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
-                mMap.clear();
-                mMap.addMarker(new MarkerOptions().position(userLocation).title("Your location"));
-                //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14));
+//                mMap.clear();
+//                mMap.addMarker(new MarkerOptions().position(userLocation).title("Your location"));
+//                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14));
             }
 
             @Override
@@ -95,7 +95,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapLongClick(LatLng latLng) {
 
-                Toast.makeText(MapsActivity.this, "I see you!", Toast.LENGTH_SHORT).show();
+                // REVERSE GEOCODING
+                // ---> getting names from coordinates
+
+                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
+                List<Address> addressList = null;
+
+                try {
+
+                    addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+
+                    if (addressList != null && addressList.size() > 0) {
+
+                        Log.i("Place Info", addressList.get(0).toString());
+
+                        String address = "";
+
+                        // get information from addressList
+
+                        if (addressList.get(0).getAddressLine(0) != null) {
+
+                            address += addressList.get(0).getAddressLine(0);
+                        }
+
+                        Toast.makeText(MapsActivity.this, address, Toast.LENGTH_LONG).show();
+                    }
+
+                } catch (IOException e) {
+
+                    e.printStackTrace();
+                }
+
+                mMap.clear();
+
+                MarkerOptions options = new MarkerOptions()
+                        .title(addressList.get(0).getLocality())
+                        .position(new LatLng(latLng.latitude,
+                                latLng.longitude));
+
+                mMap.addMarker(options);
             }
         });
 
@@ -122,7 +161,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.clear();
 
                 mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 10));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 12));
 
             }
         }
