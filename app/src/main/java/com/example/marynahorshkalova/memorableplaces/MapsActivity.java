@@ -71,7 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 mMap.clear();
                 mMap.addMarker(new MarkerOptions().position(userLocation).title("Your location"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14));
+                //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14));
             }
 
             @Override
@@ -89,6 +89,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         };
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                Toast.makeText(MapsActivity.this, "I see you!", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // ASK FOR PERMISSIONS
 
