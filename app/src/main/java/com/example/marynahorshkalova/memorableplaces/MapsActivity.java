@@ -3,6 +3,8 @@ package com.example.marynahorshkalova.memorableplaces;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -27,10 +29,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
     private GoogleMap mMap;
 
@@ -61,111 +65,77 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        mMap.setOnMapLongClickListener(this);
 
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
+        Intent intent = getIntent();
 
-                LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        if (intent.getIntExtra("Place number", 0) == 0) {
+
+            locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+            locationListener = new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+
+                    LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
 //                mMap.clear();
 //                mMap.addMarker(new MarkerOptions().position(userLocation).title("Your location"));
 //                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14));
-            }
-
-            @Override
-            public void onStatusChanged(String s, int i, Bundle bundle) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String s) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String s) {
-
-            }
-        };
-
-        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-
-            @Override
-            public void onMapLongClick(LatLng latLng) {
-
-                // REVERSE GEOCODING
-                // ---> getting names from coordinates
-
-                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-
-                List<Address> addressList = null;
-
-                try {
-
-                    addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-
-                    if (addressList != null && addressList.size() > 0) {
-
-                        Log.i("Place Info", addressList.get(0).toString());
-
-                        String address = "";
-
-                        // get information from addressList
-
-                        if (addressList.get(0).getAddressLine(0) != null) {
-
-                            address += addressList.get(0).getAddressLine(0);
-                        }
-
-                        Toast.makeText(MapsActivity.this, "Saved address: " + address, Toast.LENGTH_LONG).show();
-                    }
-
-                } catch (IOException e) {
-
-                    e.printStackTrace();
                 }
 
-                mMap.clear();
+                @Override
+                public void onStatusChanged(String s, int i, Bundle bundle) {
 
-                // MAKE A DRAGGABLE MARKER
+                }
 
-                MarkerOptions options = new MarkerOptions()
-                        .title(addressList.get(0).getAddressLine(0))
-                        .position(new LatLng(latLng.latitude,
-                                latLng.longitude));
+                @Override
+                public void onProviderEnabled(String s) {
 
-                mMap.addMarker(options);
-            }
-        });
+                }
 
-        // ASK FOR PERMISSIONS
+                @Override
+                public void onProviderDisabled(String s) {
 
-        if (Build.VERSION.SDK_INT < 23) {
+                }
+            };
 
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            // ASK FOR PERMISSIONS
 
-        } else {
-
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-
-            } else {
+            if (Build.VERSION.SDK_INT < 23) {
 
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
-                // show user's current location when the app is lounged
-                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            } else {
 
-                LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-                mMap.clear();
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-                mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 12));
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
+                } else {
+
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+                    // show user's current location when the app is lounged
+                    Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+                    LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+                    mMap.clear();
+
+                    mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location"));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 12));
+
+                }
             }
+
+        } else {
+
+            LatLng userLocation = new LatLng(MainActivity.locations.get(intent.getIntExtra("Place number", 0)).latitude, MainActivity.locations.get(intent.getIntExtra("Place number", 0)).longitude);
+
+            mMap.clear();
+            mMap.addMarker(new MarkerOptions().position(userLocation).title(MainActivity.places.get(intent.getIntExtra("Place number", 0))));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 12));
+
         }
     }
 
@@ -186,4 +156,93 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
     }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+
+        // REVERSE GEOCODING
+        // ---> getting names from coordinates
+
+        Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
+        List<Address> addressList = null;
+
+        String address = "";
+
+        try {
+
+            addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+
+            if (addressList != null && addressList.size() > 0) {
+
+                Log.i("Place Info", addressList.get(0).toString());
+
+                // get information from addressList
+
+                if (addressList.get(0).getThoroughfare() != null) {
+
+                    address += addressList.get(0).getThoroughfare();
+
+                    if (addressList.get(0).getFeatureName() != null) {
+
+                        address = address + " " + addressList.get(0).getFeatureName() + ", ";
+
+                    } else {
+
+                        address += ", ";
+                    }
+                    if (addressList.get(0).getLocality() != null) {
+
+                        address += addressList.get(0).getLocality() + ", ";
+
+                    }
+                    if (addressList.get(0).getCountryName() != null) {
+
+                        address += addressList.get(0).getCountryName();
+
+                    }
+
+                    Toast.makeText(MapsActivity.this, "Saved address: " + address, Toast.LENGTH_LONG).show();
+                }
+            }
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            Toast.makeText(this, "Can not save this address", Toast.LENGTH_SHORT).show();
+        }
+
+        // IF ADDESS IS EMPTY --> SAVE A DATE
+
+        if (address == "") {
+
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm yyyy-MM-dd");
+
+            address = sdf.format(new Date());
+
+            Toast.makeText(MapsActivity.this, "Saved date: " + address, Toast.LENGTH_LONG).show();
+        }
+
+        mMap.clear();
+
+        // MAKE A DRAGGABLE MARKER
+
+        MarkerOptions options = new MarkerOptions()
+                .title(addressList.get(0).getAddressLine(0))
+                .position(latLng);
+
+        mMap.addMarker(options);
+
+        // SAVE PLACE AND LOCATION IN ARRAYS
+
+        MainActivity.places.add(address);
+        MainActivity.locations.add(latLng);
+
+        MainActivity.arrayAdapter.notifyDataSetChanged();
+    }
 }
+
