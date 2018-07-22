@@ -30,6 +30,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -243,6 +244,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MainActivity.locations.add(latLng);
 
         MainActivity.arrayAdapter.notifyDataSetChanged();
+
+        SharedPreferences sharedPreferences = this.getSharedPreferences("com.example.marynahorshkalova.memorableplaces", Context.MODE_PRIVATE);
+
+        // CONVERT LATLNG TO TWO ARRAYLISTS OF STRING
+
+        try {
+
+            ArrayList<String> latitude = new ArrayList<>();
+            ArrayList<String> longitude = new ArrayList<>();
+
+            for (LatLng coordinates : MainActivity.locations) {
+
+                latitude.add(Double.toString(coordinates.latitude));
+                longitude.add(Double.toString(coordinates.longitude));
+            }
+
+            sharedPreferences.edit().putString("places", ObjectSerializer.serialize(MainActivity.places)).apply();
+            sharedPreferences.edit().putString("longitudes", ObjectSerializer.serialize(latitude)).apply();
+            sharedPreferences.edit().putString("longitudes", ObjectSerializer.serialize(longitude)).apply();
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
     }
 }
 
